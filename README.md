@@ -1,254 +1,101 @@
-# Next.js + Prisma User Management System
+# User & Order Management
 
-ระบบจัดการผู้ใช้งานและคำสั่งซื้อ ด้วย Next.js 16, Prisma ORM และ Neon Database
+A Next.js application demonstrating user and order management with a PostgreSQL database, Prisma ORM, and a service layer.
 
-![Next.js](https://img.shields.io/badge/Next.js-16.1.3-black?style=flat-square&logo=next.js)
-![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=flat-square&logo=typescript)
-![Prisma](https://img.shields.io/badge/Prisma-7.2.0-2D3748?style=flat-square&logo=prisma)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon-336791?style=flat-square&logo=postgresql)
+**Project type:** Full-stack demonstration  
+**ภาษาไทย:** โปรเจกต์ระบบจัดการผู้ใช้และคำสั่งซื้อ สำหรับแสดงการทำงานร่วมกันของหน้าเว็บ API และฐานข้อมูล
 
-## 🎯 Features
+## Implemented scope
 
-### Users Management
-- ✅ CRUD operations (Create, Read, Update, Delete)
-- ✅ User listing with sorting
-- ✅ Role management (user/admin)
-- ✅ Form to add new users
-- ✅ Delete with confirmation
-- ✅ Change role via dropdown
+- Create, list, update, and delete users and orders.
+- Associate orders with users.
+- Store user roles and order status.
+- Organize database operations behind service modules.
+- Expose HTTP endpoints through Next.js route handlers.
 
-### Orders Management
-- ✅ CRUD operations for orders
-- ✅ Link orders to users
-- ✅ Order status tracking (pending, processing, completed, cancelled)
-- ✅ Order amount management
-- ✅ Create new orders form
-- ✅ Status update dropdown
+A stored role value is part of the data model; it does not by itself provide authentication or access control.
 
-### API Routes
-- ✅ RESTful API with proper HTTP methods
-- ✅ Error handling and validation
-- ✅ Service layer pattern for business logic
-- ✅ TypeScript for type safety
+## Stack
 
-## 📋 Tech Stack
+Next.js 16.1.3 · React 19 · TypeScript · Prisma 7 · PostgreSQL / Neon · Tailwind CSS 4
 
-- **Framework**: Next.js 16.1.3 (App Router)
-- **Language**: TypeScript
-- **ORM**: Prisma 7.2.0
-- **Database**: PostgreSQL (Neon)
-- **Styling**: CSS + Tailwind CSS
-- **State Management**: React Hooks
+Exact dependencies and scripts are in [package.json](package.json).
 
-## 🚀 Getting Started
+## Run locally
 
-### Prerequisites
-- Node.js 18+
-- npm or yarn
-- PostgreSQL database (Neon recommended)
+Use a Node.js version supported by the installed Next.js and Prisma releases. Use a development Neon PostgreSQL database for the current `PrismaNeon` runtime adapter.
 
-### Installation
-
-1. **Clone the repository**
 ```bash
 git clone https://github.com/Sonthep/nextjs-prisma-user-management.git
 cd nextjs-prisma-user-management
+npm ci
 ```
 
-2. **Install dependencies**
+Create a local `.env` file:
+
+```dotenv
+DATABASE_URL=postgresql://USER:PASSWORD@HOST/DATABASE?sslmode=require
+```
+
+The connection string above is an example. Both `prisma.config.ts` and the runtime database module load `dotenv/config`.
+
 ```bash
-npm install
-```
-
-3. **Setup environment variables** - Create `.env.local`:
-```env
-DATABASE_URL="postgresql://user:password@host/database"
-NEXT_PUBLIC_BASE_URL="http://localhost:3000"
-```
-
-4. **Setup database**
-```bash
-# Run migrations
-npx prisma migrate dev
-
-# Generate Prisma Client
 npx prisma generate
-
-# Seed database with sample data
-npm run seed
-```
-
-5. **Start development server**
-```bash
+npx prisma migrate dev
 npm run dev
 ```
 
-Visit [http://localhost:3000](http://localhost:3000)
+Open http://localhost:3000/users and http://localhost:3000/orders.
 
-## 📁 Project Structure
+### Optional sample data
 
-```
-app/
-├── api/
-│   ├── users/
-│   │   ├── route.ts           # GET, POST
-│   │   └── [id]/route.ts      # GET, PATCH, DELETE
-│   └── orders/
-│       ├── route.ts           # GET, POST
-│       └── [id]/route.ts      # GET, PATCH, DELETE
-├── users/page.tsx             # Users management UI
-├── orders/page.tsx            # Orders management UI
-└── layout.tsx
+The sample data script is [prisma/seed.cjs](prisma/seed.cjs). There is currently no `npm run seed` script. It uses the PostgreSQL adapter and imports `pg`, which is not declared directly in package.json; review that dependency before running `node prisma/seed.cjs`.
 
-lib/
-├── prisma.ts                  # Prisma singleton
-├── user.service.ts            # User business logic
-└── order.service.ts           # Order business logic
+## Architecture
 
-prisma/
-├── schema.prisma              # Database schema
-├── migrations/                # Database migrations
-└── seed.cjs                   # Seeding script
-```
+| Location | Responsibility |
+| --- | --- |
+| [app/users/](app/users/) | User management interface |
+| [app/orders/](app/orders/) | Order management interface |
+| [app/api/](app/api/) | HTTP route handlers |
+| [lib/](lib/) | Prisma client and service modules |
+| [prisma/schema.prisma](prisma/schema.prisma) | User and Order data models |
+| [prisma/migrations/](prisma/migrations/) | Database migration history |
+| [prisma.config.ts](prisma.config.ts) | Prisma datasource configuration |
 
-## 🔗 API Endpoints
+Orders reference users through `userId`. The schema configures cascade deletion: deleting a user also deletes their related orders.
 
-### Users
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/users` | Get all users |
-| POST | `/api/users` | Create user |
-| GET | `/api/users/[id]` | Get user by ID |
-| PATCH | `/api/users/[id]` | Update user |
-| DELETE | `/api/users/[id]` | Delete user |
+## API reference
 
-### Orders
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/orders` | Get all orders |
-| POST | `/api/orders` | Create order |
-| GET | `/api/orders/[id]` | Get order by ID |
-| PATCH | `/api/orders/[id]` | Update order |
-| DELETE | `/api/orders/[id]` | Delete order |
+| Resource | Collection | Individual record |
+| --- | --- | --- |
+| Users | `GET /api/users`, `POST /api/users` | `GET`, `PATCH`, `DELETE /api/users/[id]` |
+| Orders | `GET /api/orders`, `POST /api/orders` | `GET`, `PATCH`, `DELETE /api/orders/[id]` |
 
-### Example Requests
+Example request against a local development instance:
 
-**Create User:**
 ```bash
 curl -X POST http://localhost:3000/api/users \
   -H "Content-Type: application/json" \
-  -d '{"email": "user@example.com", "role": "user"}'
+  -d '{"email":"demo@example.com","role":"user"}'
 ```
 
-**Create Order:**
-```bash
-curl -X POST http://localhost:3000/api/orders \
-  -H "Content-Type: application/json" \
-  -d '{"userId": "user-id", "total": "999.99", "status": "pending"}'
-```
-
-**Update Order Status:**
-```bash
-curl -X PATCH http://localhost:3000/api/orders/order-id \
-  -H "Content-Type: application/json" \
-  -d '{"status": "completed"}'
-```
-
-## 📊 Database Schema
-
-### User Model
-```prisma
-model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  role      String   @default("user")
-  createdAt DateTime @default(now())
-  orders    Order[]
-}
-```
-
-### Order Model
-```prisma
-model Order {
-  id        String   @id @default(cuid())
-  userId    String
-  total     Decimal  @db.Decimal(10, 2)
-  status    String   @default("pending")
-  createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  @@index([userId])
-}
-```
-
-## 🛠️ Available Scripts
+## Validation
 
 ```bash
-npm run dev        # Start development server
-npm run build      # Build for production
-npm start          # Start production server
-npm run lint       # Run ESLint
-npm run seed       # Seed database
-
-# Prisma
-npx prisma generate      # Generate Prisma Client
-npx prisma migrate dev   # Run migrations
-npx prisma studio       # Open Prisma Studio
+npm run lint
+npx tsc --noEmit
+npm run build
 ```
 
-## 🎨 Pages
+These are verification commands, not a record of successful execution. The repository does not define an automated test script.
 
-- **[http://localhost:3000/users](http://localhost:3000/users)** - Users management
-- **[http://localhost:3000/orders](http://localhost:3000/orders)** - Orders management
+## Demo boundaries
 
-## 📝 Service Layer Pattern
+The inspected user collection routes do not enforce authentication or authorization. The current database module also logs a prefix of the connection string for debugging. Review those behaviors before deploying with real accounts or data.
 
-The project uses services for cleaner code organization:
+This repository demonstrates application structure and relational CRUD workflows; it is not presented as a production-ready administration system.
 
-```typescript
-// user.service.ts
-export const userService = {
-  async getAll() { /* ... */ },
-  async getById(id: string) { /* ... */ },
-  async create(email: string, role?: string) { /* ... */ },
-  async update(id: string, data) { /* ... */ },
-  async delete(id: string) { /* ... */ },
-};
-```
+## Author
 
-API routes call services instead of Prisma directly.
-
-## 🚀 Deployment
-
-### Vercel (Recommended)
-1. Push to GitHub
-2. Connect repo to Vercel
-3. Add `DATABASE_URL` environment variable
-4. Deploy
-
-### Railway / Other Platforms
-1. Connect GitHub repo
-2. Set environment variables
-3. Deploy
-
-## 🔒 Key Points
-
-- ✅ Next.js 15+ requires `await params` in dynamic routes
-- ✅ Uses Prisma ORM with PostgreSQL
-- ✅ Service layer for business logic
-- ✅ TypeScript for type safety
-- ✅ Never commit `.env.local` with secrets
-- ✅ Cascade delete: removing user deletes their orders
-
-## 📚 Resources
-
-- [Next.js Docs](https://nextjs.org/docs)
-- [Prisma Docs](https://www.prisma.io/docs/)
-- [Neon Docs](https://neon.tech/docs)
-
-## 📄 License
-
-MIT License - feel free to use for learning and projects!
-
----
-
-**Repository:** [nextjs-prisma-user-management](https://github.com/Sonthep/nextjs-prisma-user-management)
+[Sonthep](https://github.com/Sonthep)
